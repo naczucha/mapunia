@@ -11,10 +11,21 @@
             margin: 0;
             padding: 0;
             text-align: center;
+            background: linear-gradient(to right, #6dd5fa, #ffffff);
+            color: #333;
+        }
+        #map-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 700px;
         }
         #map {
             height: 600px;
-            width: 100%;
+            width: 80%;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         #attractions {
             margin-top: 20px;
@@ -28,73 +39,105 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
         }
         button:hover {
             background-color: #45a049;
+            transform: scale(1.05);
         }
         #header {
             font-size: 36px;
             margin-top: 20px;
+            font-weight: bold;
         }
         #search {
             margin: 20px;
             padding: 10px;
             width: 200px;
             font-size: 16px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+        }
+        header, footer {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            width: 100%;
+            position: fixed;
+            z-index: 1;
+        }
+        header {
+            top: 0;
+        }
+        footer {
+            bottom: 0;
+        }
+        .content {
+            padding-top: 60px;
+            padding-bottom: 40px;
         }
     </style>
 </head>
 <body>
-    <div id="header">Map of Europe</div>
-    <input type="text" id="search" placeholder="Search for a capital...">
-    <button id="randomButton">LOSUJ</button>
-    <div id="map"></div>
-    <div id="attractions"></div>
+    <header>
+        <div id="header">Map of Europe</div>
+    </header>
+    <div class="content">
+        <input type="text" id="search" placeholder="Search for a capital...">
+        <button id="randomButton">LOSUJ</button>
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
+        <div id="attractions"></div>
+    </div>
+    <footer>
+        <p>&copy; 2024 Map of Europe and its Attractions. All rights reserved.</p>
+    </footer>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         const capitals = [
-            { name: "Amsterdam", lat: 52.3676, lon: 4.9041, attractions: ["Rijksmuseum", "https://www.rijksmuseum.nl/en"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Rijksmuseum_in_2016.jpg/320px-Rijksmuseum_in_2016.jpg" },
-            { name: "Andorra la Vella", lat: 42.5078, lon: 1.5211, attractions: ["Caldea Spa", "https://www.caldea.com/en"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Caldea.jpg/320px-Caldea.jpg" },
-            { name: "Athens", lat: 37.9838, lon: 23.7275, attractions: ["Acropolis", "https://www.theacropolismuseum.gr/en"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Acropolis_Athens.jpg/320px-Acropolis_Athens.jpg" },
-            { name: "Belgrade", lat: 44.7866, lon: 20.4489, attractions: ["Kalemegdan Fortress", "http://www.beogradskatvrdjava.co.rs/?lang=en"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Beogradska_tvrdjava_i_Zindan_kapija.jpg/320px-Beogradska_tvrdjava_i_Zindan_kapija.jpg" },
-            { name: "Berlin", lat: 52.5200, lon: 13.4050, attractions: ["Brandenburg Gate", "https://www.visitberlin.de/en/brandenburg-gate"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Brandenburg_Gate_at_night.jpg/320px-Brandenburg_Gate_at_night.jpg" },
-            { name: "Bern", lat: 46.9481, lon: 7.4474, attractions: ["Zytglogge", "https://www.bern.com/en/detail/zeitglockenturm-zytglogge-clock-tower"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Zytglogge_Bern.jpg/320px-Zytglogge_Bern.jpg" },
-            { name: "Bratislava", lat: 48.1486, lon: 17.1077, attractions: ["Bratislava Castle", "https://www.visitbratislava.com/places/bratislava-castle/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Bratislava_Castle.jpg/320px-Bratislava_Castle.jpg" },
-            { name: "Brussels", lat: 50.8503, lon: 4.3517, attractions: ["Grand Place", "https://visit.brussels/en/place/Grand-Place-Grote-Markt"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Grand_Place_BXL_1200.jpg/320px-Grand_Place_BXL_1200.jpg" },
-            { name: "Budapest", lat: 47.4979, lon: 19.0402, attractions: ["Buda Castle", "https://budacastlebudapest.com/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Buda_Castle_Vienna_Gate.jpg/320px-Buda_Castle_Vienna_Gate.jpg" },
-            { name: "Bucharest", lat: 44.4268, lon: 26.1025, attractions: ["Palace of the Parliament", "https://cic.cdep.ro/en/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Palatul_Parlamentului.jpg/320px-Palatul_Parlamentului.jpg" },
-            { name: "Dublin", lat: 53.3498, lon: -6.2603, attractions: ["Guinness Storehouse", "https://www.guinness-storehouse.com/en"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Guinness_Storehouse_Main_Entrance.jpg/320px-Guinness_Storehouse_Main_Entrance.jpg" },
-            { name: "Helsinki", lat: 60.1695, lon: 24.9354, attractions: ["Suomenlinna Fortress", "https://www.suomenlinna.fi/en/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Suomenlinna_Panorama.jpg/320px-Suomenlinna_Panorama.jpg" },
-            { name: "Kiev", lat: 50.4501, lon: 30.5234, attractions: ["Kiev Pechersk Lavra", "https://lavra.ua/en/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Kiev_Pechersk_Lavra.jpg/320px-Kiev_Pechersk_Lavra.jpg" },
-            { name: "Copenhagen", lat: 55.6761, lon: 12.5683, attractions: ["Nyhavn", "https://www.visitcopenhagen.com/copenhagen/nyhavn-gdk474735"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Nyhavn_Copenhagen.jpg/320px-Nyhavn_Copenhagen.jpg" },
-            { name: "Lisbon", lat: 38.7223, lon: -9.1393, attractions: ["25 de Abril Bridge", "https://www.lisbonguide.org/25th-april-bridge/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Lisbon_Bridge_April_25.jpg/320px-Lisbon_Bridge_April_25.jpg" },
-            { name: "Ljubljana", lat: 46.0569, lon: 14.5058, attractions: ["Ljubljana Castle", "https://www.ljubljanskigrad.si/en/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Ljubljana_Castle_from_the_hill.jpg/320px-Ljubljana_Castle_from_the_hill.jpg" },
-            { name: "London", lat: 51.5074, lon: -0.1278, attractions: ["Tower of London", "https://www.hrp.org.uk/tower-of-london/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Tower_of_London_viewed_from_the_River_Thames.jpg/320px-Tower_of_London_viewed_from_the_River_Thames.jpg" },
-            { name: "Luxembourg", lat: 49.6117, lon: 6.1319, attractions: ["Bock Casemates", "https://www.visitluxembourg.com/en/place/castle/bock-casemates"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Casemates_du_Bock.jpg/320px-Casemates_du_Bock.jpg" },
-            { name: "Madrid", lat: 40.4168, lon: -3.7038, attractions: ["Royal Palace", "https://www.patrimonionacional.es/en/real-sitio/royal-palace-madrid"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Royal_Palace_of_Madrid.jpg/320px-Royal_Palace_of_Madrid.jpg" },
-            { name: "Minsk", lat: 53.9045, lon: 27.5615, attractions: ["Island of Tears", "http://www.traveling.by/tour/375"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Island_of_Tears_in_Minsk.jpg/320px-Island_of_Tears_in_Minsk.jpg" },
-            { name: "Monaco", lat: 43.7384, lon: 7.4246, attractions: ["Prince's Palace", "https://www.palais.mc/en/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Monaco_Ville_-_Place_du_Palais.jpg/320px-Monaco_Ville_-_Place_du_Palais.jpg" },
-            { name: "Moscow", lat: 55.7558, lon: 37.6173, attractions: ["Kremlin", "https://www.kreml.ru/en-Us/museums-moscow-kremlin"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Moscow_Kremlin_by_Brück_%26_Sohn.jpg/320px-Moscow_Kremlin_by_Brück_%26_Sohn.jpg" },
-            { name: "Oslo", lat: 59.9139, lon: 10.7522, attractions: ["Vigeland Park", "https://www.oslo.kommune.no/english/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Vigeland_Park.jpg/320px-Vigeland_Park.jpg" },
-            { name: "Paris", lat: 48.8566, lon: 2.3522, attractions: ["Eiffel Tower", "https://www.toureiffel.paris/en"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Eiffel_Tower_at_night_from_the_Seine.jpg/320px-Eiffel_Tower_at_night_from_the_Seine.jpg" },
-            { name: "Podgorica", lat: 42.4410, lon: 19.2636, attractions: ["Millennium Bridge", "https://en.wikipedia.org/wiki/Millennium_Bridge,_Podgorica"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Millennium_Bridge_Podgorica.jpg/320px-Millennium_Bridge_Podgorica.jpg" },
-            { name: "Prague", lat: 50.0755, lon: 14.4378, attractions: ["Charles Bridge", "https://www.prague.eu/en/object/places/93/charles-bridge-karluv-most"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Charles_Bridge%2C_Prague.jpg/320px-Charles_Bridge%2C_Prague.jpg" },
-            { name: "Reykjavik", lat: 64.1355, lon: -21.8954, attractions: ["Hallgrimskirkja", "https://en.hallgrimskirkja.is/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Hallgrimskirkja_church.jpg/320px-Hallgrimskirkja_church.jpg" },
-            { name: "Riga", lat: 56.9496, lon: 24.1052, attractions: ["Old Town", "https://www.liveriga.com/en/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Riga_Old_Town.jpg/320px-Riga_Old_Town.jpg" },
-            { name: "Rome", lat: 41.9028, lon: 12.4964, attractions: ["Colosseum", "https://parcocolosseo.it/en/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Rome_Colosseum_exterior.jpg/320px-Rome_Colosseum_exterior.jpg" },
-            { name: "San Marino", lat: 43.9333, lon: 12.4500, attractions: ["Guaita Fortress", "https://www.visitsanmarino.com/on-line/en/home/visit/places-of-interest/guaita.html"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Guaita_San_Marino.jpg/320px-Guaita_San_Marino.jpg" },
-            { name: "Sarajevo", lat: 43.8563, lon: 18.4131, attractions: ["Baščaršija", "https://sarajevo.travel/en/things-to-do/bascarsija/176"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Ba%C5%A1%C4%8Dar%C5%A1ija_Square.jpg/320px-Ba%C5%A1%C4%8Dar%C5%A1ija_Square.jpg" },
-            { name: "Skopje", lat: 41.9981, lon: 21.4254, attractions: ["Stone Bridge", "https://exploringmacedonia.com/en/city/skopje.html"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Skopje_Macedonia_Stone_Bridge.jpg/320px-Skopje_Macedonia_Stone_Bridge.jpg" },
-            { name: "Sofia", lat: 42.6977, lon: 23.3219, attractions: ["Alexander Nevsky Cathedral", "https://www.cathedral.bg/en/home"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Alexander_Nevsky_Cathedral_Sofia.jpg/320px-Alexander_Nevsky_Cathedral_Sofia.jpg" },
-            { name: "Stockholm", lat: 59.3293, lon: 18.0686, attractions: ["Vasa Museum", "https://www.vasamuseet.se/en"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Vasa_Museum_Stockholm.jpg/320px-Vasa_Museum_Stockholm.jpg" },
-            { name: "Tallinn", lat: 59.4370, lon: 24.7535, attractions: ["Old Town", "https://www.visittallinn.ee/eng/visitor"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Tallinn_Old_Town.jpg/320px-Tallinn_Old_Town.jpg" },
-            { name: "Tirana", lat: 41.3275, lon: 19.8187, attractions: ["Skanderbeg Square", "https://www.intoalbania.com/attraction/skanderbeg-square/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Skanderbeg_Square_Tirana_Albania.jpg/320px-Skanderbeg_Square_Tirana_Albania.jpg" },
-            { name: "Vaduz", lat: 47.1410, lon: 9.5209, attractions: ["Vaduz Castle", "https://tourismus.li/en/our-highlights/sights-in-liechtenstein/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Vaduz_Castle.jpg/320px-Vaduz_Castle.jpg" },
-            { name: "Warsaw", lat: 52.2297, lon: 21.0122, attractions: ["Royal Castle", "https://www.zamek-krolewski.pl/en"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Royal_Castle_Warsaw.jpg/320px-Royal_Castle_Warsaw.jpg" },
-            { name: "Vatican City", lat: 41.9029, lon: 12.4534, attractions: ["St. Peter's Basilica", "http://www.vatican.va/various/basiliche/san_pietro/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/St._Peter%27s_Basilica%2C_Vatican_City_-_April_2007.jpg/320px-St._Peter%27s_Basilica%2C_Vatican_City_-_April_2007.jpg" },
-            { name: "Vilnius", lat: 54.6872, lon: 25.2797, attractions: ["Gate of Dawn", "http://www.ausrosvartai.lt/"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Vilnius_Gate_of_Dawn.jpg/320px-Vilnius_Gate_of_Dawn.jpg" },
-            { name: "Zagreb", lat: 45.8150, lon: 15.9819, attractions: ["Zagreb Cathedral", "https://www.infozagreb.hr/katedrala"], image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Zagreb_Cathedral.jpg/320px-Zagreb_Cathedral.jpg" }
+            { name: "Amsterdam", lat: 52.3676, lon: 4.9041, attractions: ["Rijksmuseum", "https://www.rijksmuseum.nl/en"] },
+            { name: "Andorra la Vella", lat: 42.5078, lon: 1.5211, attractions: ["Caldea Spa", "https://www.caldea.com/en"] },
+            { name: "Athens", lat: 37.9838, lon: 23.7275, attractions: ["Acropolis", "https://www.theacropolismuseum.gr/en"] },
+            { name: "Belgrade", lat: 44.7866, lon: 20.4489, attractions: ["Kalemegdan Fortress", "http://www.beogradskatvrdjava.co.rs/?lang=en"] },
+            { name: "Berlin", lat: 52.5200, lon: 13.4050, attractions: ["Brandenburg Gate", "https://www.visitberlin.de/en/brandenburg-gate"] },
+            { name: "Bern", lat: 46.9481, lon: 7.4474, attractions: ["Zytglogge", "https://www.bern.com/en/detail/zeitglockenturm-zytglogge-clock-tower"] },
+            { name: "Bratislava", lat: 48.1486, lon: 17.1077, attractions: ["Bratislava Castle", "https://www.visitbratislava.com/places/bratislava-castle/"] },
+            { name: "Brussels", lat: 50.8503, lon: 4.3517, attractions: ["Grand Place", "https://visit.brussels/en/place/Grand-Place-Grote-Markt"] },
+            { name: "Budapest", lat: 47.4979, lon: 19.0402, attractions: ["Buda Castle", "https://budacastlebudapest.com/"] },
+            { name: "Bucharest", lat: 44.4268, lon: 26.1025, attractions: ["Palace of the Parliament", "https://cic.cdep.ro/en/"] },
+            { name: "Dublin", lat: 53.3498, lon: -6.2603, attractions: ["Guinness Storehouse", "https://www.guinness-storehouse.com/en"] },
+            { name: "Helsinki", lat: 60.1695, lon: 24.9354, attractions: ["Suomenlinna Fortress", "https://www.suomenlinna.fi/en/"] },
+            { name: "Kiev", lat: 50.4501, lon: 30.5234, attractions: ["Kiev Pechersk Lavra", "https://lavra.ua/en/"] },
+            { name: "Copenhagen", lat: 55.6761, lon: 12.5683, attractions: ["Nyhavn", "https://www.visitcopenhagen.com/copenhagen/nyhavn-gdk474735"] },
+            { name: "Lisbon", lat: 38.7223, lon: -9.1393, attractions: ["25 de Abril Bridge", "https://www.lisbonguide.org/25th-april-bridge/"] },
+            { name: "Ljubljana", lat: 46.0569, lon: 14.5058, attractions: ["Ljubljana Castle", "https://www.ljubljanskigrad.si/en/"] },
+            { name: "London", lat: 51.5074, lon: -0.1278, attractions: ["Tower of London", "https://www.hrp.org.uk/tower-of-london/"] },
+            { name: "Luxembourg", lat: 49.6117, lon: 6.1319, attractions: ["Bock Casemates", "https://www.visitluxembourg.com/en/place/castle/bock-casemates"] },
+            { name: "Madrid", lat: 40.4168, lon: -3.7038, attractions: ["Royal Palace", "https://www.patrimonionacional.es/en/real-sitio/royal-palace-madrid"] },
+            { name: "Minsk", lat: 53.9045, lon: 27.5615, attractions: ["Island of Tears", "http://www.traveling.by/tour/375"] },
+            { name: "Monaco", lat: 43.7384, lon: 7.4246, attractions: ["Prince's Palace", "https://www.palais.mc/en/"] },
+            { name: "Moscow", lat: 55.7558, lon: 37.6173, attractions: ["Kremlin", "https://www.kreml.ru/en-Us/museums-moscow-kremlin"] },
+            { name: "Oslo", lat: 59.9139, lon: 10.7522, attractions: ["Vigeland Park", "https://www.oslo.kommune.no/english/"] },
+            { name: "Paris", lat: 48.8566, lon: 2.3522, attractions: ["Eiffel Tower", "https://www.toureiffel.paris/en"] },
+            { name: "Podgorica", lat: 42.4410, lon: 19.2636, attractions: ["Millennium Bridge", "https://en.wikipedia.org/wiki/Millennium_Bridge,_Podgorica"] },
+            { name: "Prague", lat: 50.0755, lon: 14.4378, attractions: ["Charles Bridge", "https://www.prague.eu/en/object/places/93/charles-bridge-karluv-most"] },
+            { name: "Reykjavik", lat: 64.1355, lon: -21.8954, attractions: ["Hallgrimskirkja", "https://en.hallgrimskirkja.is/"] },
+            { name: "Riga", lat: 56.9496, lon: 24.1052, attractions: ["Old Town", "https://www.liveriga.com/en/"] },
+            { name: "Rome", lat: 41.9028, lon: 12.4964, attractions: ["Colosseum", "https://parcocolosseo.it/en/"] },
+            { name: "San Marino", lat: 43.9333, lon: 12.4500, attractions: ["Guaita Fortress", "https://www.visitsanmarino.com/on-line/en/home/visit/places-of-interest/guaita.html"] },
+            { name: "Sarajevo", lat: 43.8563, lon: 18.4131, attractions: ["Baščaršija", "https://sarajevo.travel/en/things-to-do/bascarsija/176"] },
+            { name: "Skopje", lat: 41.9981, lon: 21.4254, attractions: ["Stone Bridge", "https://exploringmacedonia.com/en/city/skopje.html"] },
+            { name: "Sofia", lat: 42.6977, lon: 23.3219, attractions: ["Alexander Nevsky Cathedral", "https://www.cathedral.bg/en/home"] },
+            { name: "Stockholm", lat: 59.3293, lon: 18.0686, attractions: ["Vasa Museum", "https://www.vasamuseet.se/en"] },
+            { name: "Tallinn", lat: 59.4370, lon: 24.7535, attractions: ["Old Town", "https://www.visittallinn.ee/eng/visitor"] },
+            { name: "Tirana", lat: 41.3275, lon: 19.8187, attractions: ["Skanderbeg Square", "https://www.intoalbania.com/attraction/skanderbeg-square/"] },
+            { name: "Vaduz", lat: 47.1410, lon: 9.5209, attractions: ["Vaduz Castle", "https://tourismus.li/en/our-highlights/sights-in-liechtenstein/"] },
+            { name: "Warsaw", lat: 52.2297, lon: 21.0122, attractions: ["Royal Castle", "https://www.zamek-krolewski.pl/en"] },
+            { name: "Vatican City", lat: 41.9029, lon: 12.4534, attractions: ["St. Peter's Basilica", "http://www.vatican.va/various/basiliche/san_pietro/"] },
+            { name: "Vilnius", lat: 54.6872, lon: 25.2797, attractions: ["Gate of Dawn", "http://www.ausrosvartai.lt/"] },
+            { name: "Zagreb", lat: 45.8150, lon: 15.9819, attractions: ["Zagreb Cathedral", "https://www.infozagreb.hr/katedrala"] }
         ];
 
         const map = L.map('map').setView([54.5260, 15.2551], 4);
@@ -104,7 +147,7 @@
 
         capitals.forEach(capital => {
             const marker = L.marker([capital.lat, capital.lon]).addTo(map);
-            marker.bindPopup(`<b>${capital.name}</b><br><a href="${capital.attractions[1]}" target="_blank">${capital.attractions[0]}</a><br><img src="${capital.image}" alt="${capital.attractions[0]}" width="100%">`);
+            marker.bindPopup(`<b>${capital.name}</b><br><a href="${capital.attractions[1]}" target="_blank">${capital.attractions[0]}</a>`);
         });
 
         document.getElementById('randomButton').addEventListener('click', () => {
@@ -113,7 +156,7 @@
             map.setView([randomCapital.lat, randomCapital.lon], 8);
             L.popup()
                 .setLatLng([randomCapital.lat, randomCapital.lon])
-                .setContent(`<b>${randomCapital.name}</b><br><a href="${randomCapital.attractions[1]}" target="_blank">${randomCapital.attractions[0]}</a><br><img src="${randomCapital.image}" alt="${randomCapital.attractions[0]}" width="100%">`)
+                .setContent(`<b>${randomCapital.name}</b><br><a href="${randomCapital.attractions[1]}" target="_blank">${randomCapital.attractions[0]}</a>`)
                 .openOn(map);
         });
 
@@ -125,7 +168,7 @@
                 map.setView([searchCapital.lat, searchCapital.lon], 8);
                 L.popup()
                     .setLatLng([searchCapital.lat, searchCapital.lon])
-                    .setContent(`<b>${searchCapital.name}</b><br><a href="${searchCapital.attractions[1]}" target="_blank">${searchCapital.attractions[0]}</a><br><img src="${searchCapital.image}" alt="${searchCapital.attractions[0]}" width="100%">`)
+                    .setContent(`<b>${searchCapital.name}</b><br><a href="${searchCapital.attractions[1]}" target="_blank">${searchCapital.attractions[0]}</a>`)
                     .openOn(map);
             }
         });
